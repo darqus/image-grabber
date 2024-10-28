@@ -7,5 +7,25 @@ grabBtn.addEventListener('click', async () => {
   })
 
   const tabId = currentTab ? currentTab.id : undefined
-  alert(tabId ?? 'There are no active tabs')
+
+  if (!tabId) {
+    alert(tabId ?? 'There are no active tabs')
+    return
+  }
+
+  chrome.scripting.executeScript(
+    {
+      target: { tabId, allFrames: true },
+      func: grabImages,
+    },
+    onResult,
+  )
 })
+
+const grabImages = () => {
+  alert('Grabbing images...')
+}
+
+const onResult = (frames) => {
+  alert('Result:', frames)
+}
