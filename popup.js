@@ -7,9 +7,9 @@ grabBtn.addEventListener('click', async () => {
   })
 
   const tabId = currentTab ? currentTab.id : undefined
+  alert(tabId ?? 'There are no active tabs')
 
   if (!tabId) {
-    alert(tabId ?? 'There are no active tabs')
     return
   }
 
