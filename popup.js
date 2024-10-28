@@ -35,7 +35,13 @@ const onResult = (frames) => {
     return
   }
 
-  navigator.clipboard.writeText(imageUrls.join('\n')).then(() => {
-    window.close()
+  openImagesPage(imageUrls)
+}
+
+const openImagesPage = (imageUrls) => {
+  chrome.tabs.create({ url: 'page.html' }, (tab) => {
+    chrome.tabs.sendMessage(tab.id, imageUrls, () => {
+      chrome.tabs.update(tab.id, { active: true })
+    })
   })
 }
