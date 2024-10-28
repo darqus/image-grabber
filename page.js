@@ -1,5 +1,6 @@
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   addImagesToContainer(message)
+  sendResponse('OK')
 })
 
 const addImagesToContainer = (imageUrls) => {
