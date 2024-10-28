@@ -46,11 +46,13 @@ const onResult = (frames) => {
 
 const openImagesPage = (urls) => {
   chrome.tabs.create({ url: 'page.html', active: false }, (tab) => {
-    // * Send `urls` array to this page
-    setTimeout(() => {
-      chrome.tabs.sendMessage(tab.id, urls, (response) => {
-        chrome.tabs.update(tab.id, { active: true })
-      })
-    }, 500)
+    chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
+      if (tabId === tab.id && changeInfo.status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(listener)
+        chrome.tabs.sendMessage(tab.id, urls, (response) => {
+          chrome.tabs.update(tab.id, { active: true })
+        })
+      }
+    })
   })
 }
