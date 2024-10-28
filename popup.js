@@ -36,9 +36,9 @@ const handleResult = (results) => {
 }
 
 const openImagesPage = (imageUrls) => {
-  chrome.tabs.create({ url: 'page.html', active: false }, (tab) => {
-    chrome.tabs.sendMessage(tab.id, imageUrls, () => {
-      chrome.tabs.update(tab.id, { active: true })
+  chrome.tabs.create({ url: 'page.html', active: false }, ({id}) => {
+    chrome.tabs.sendMessage(id, imageUrls, () => {
+      chrome.tabs.update(id, { active: true })
     })
   })
 }
