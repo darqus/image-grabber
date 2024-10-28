@@ -1,44 +1,56 @@
-document.getElementById('grabBtn').addEventListener('click', async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+const grabBtn = document.getElementById('grabBtn')
+grabBtn.addEventListener('click', () => {
+  // Get active browser tab
+  chrome.tabs.query({ active: true }, (tabs) => {
+    const tab = tabs[0]
+    if (tab) {
+      execScript(tab)
+    } else {
+      alert('There are no active tabs')
+    }
+  })
+})
 
-  if (!tab) {
-    alert('No active tab')
-    return
-  }
-
+const execScript = (tab) => {
+  // Execute a function on a page of the current browser tab
+  // and process the result of execution
   chrome.scripting.executeScript(
     {
       target: { tabId: tab.id, allFrames: true },
-      func: grabImageUrls,
+      func: grabImages,
     },
-    handleResult,
+    onResult,
   )
-})
+}
 
-const grabImageUrls = () => {
+const grabImages = () => {
   const images = document.querySelectorAll('img')
   return Array.from(images).map((image) => image.src)
 }
 
-const handleResult = (results) => {
-  const imageUrls = results
-    .flatMap((result) => result.result)
-    .filter((url) => url)
-
-  alert(`Found ${imageUrls.length} images`)
-
-  if (imageUrls.length === 0) {
-    alert('No images found on the page')
+const onResult = (frames) => {
+  // If script execution failed on remote end
+  // and could not return results
+  if (!frames || !frames.length) {
+    alert('Could not retrieve images from specified page')
     return
   }
-
+  // Combine arrays of image URLs from
+  // each frame to a single array
+  const imageUrls = frames
+    .map((frame) => frame.result)
+    .reduce((r1, r2) => r1.concat(r2))
+  // Open a page with a list of images and send urls to it
   openImagesPage(imageUrls)
 }
 
-const openImagesPage = (imageUrls) => {
-  chrome.tabs.create({ url: 'page.html', active: false }, ({id}) => {
-    chrome.tabs.sendMessage(id, imageUrls, () => {
-      chrome.tabs.update(id, { active: true })
-    })
+const openImagesPage = (urls) => {
+  chrome.tabs.create({ url: 'page.html', active: false }, (tab) => {
+    // * Send `urls` array to this page
+    setTimeout(() => {
+      chrome.tabs.sendMessage(tab.id, urls, (response) => {
+        chrome.tabs.update(tab.id, { active: true })
+      })
+    }, 500)
   })
 }
