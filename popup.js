@@ -23,9 +23,19 @@ grabBtn.addEventListener('click', async () => {
 })
 
 const grabImages = () => {
-  alert('Grabbing images...')
+  const images = document.querySelectorAll('img')
+  return Array.from(images).map((image) => image.src)
 }
 
 const onResult = (frames) => {
-  alert('Result:', frames)
+  const imageUrls = frames.flatMap((frame) => frame.result).filter((url) => url)
+
+  if (imageUrls.length === 0) {
+    alert('Could not retrieve images from specified page')
+    return
+  }
+
+  navigator.clipboard.writeText(imageUrls.join('\n')).then(() => {
+    window.close()
+  })
 }
