@@ -3,30 +3,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   sendResponse('OK')
 })
 
-const addImagesToContainer = (urls) => {
-  if (!urls || !urls.length) return
+const addImagesToContainer = (imageUrls) => {
+  if (!imageUrls || imageUrls.length === 0) return
 
   const container = document.querySelector('.container')
-  urls.forEach((url) => addImageNode(container, url))
+  imageUrls.forEach((imageUrl) => addImageNode(container, imageUrl))
 }
 
-const addImageNode = (container, url) => {
-  const div = document.createElement('div')
-  div.className = 'imageDiv'
-  const img = document.createElement('img')
-  img.src = url
-  div.appendChild(img)
-  const checkbox = document.createElement('input')
-  checkbox.type = 'checkbox'
-  checkbox.setAttribute('url', url)
-  div.appendChild(checkbox)
-  container.appendChild(div)
+const addImageNode = (container, imageUrl) => {
+  const imageDiv = document.createElement('div')
+  imageDiv.className = 'imageDiv'
+
+  const imageElement = document.createElement('img')
+  imageElement.src = imageUrl
+  imageDiv.appendChild(imageElement)
+
+  const checkboxElement = document.createElement('input')
+  checkboxElement.type = 'checkbox'
+  checkboxElement.setAttribute('url', imageUrl)
+  imageDiv.appendChild(checkboxElement)
+
+  container.appendChild(imageDiv)
 }
 
 document.getElementById('selectAll').addEventListener('change', (event) => {
-  const items = document.querySelectorAll('.container input')
-  for (const item of items) {
-    item.checked = event.target.checked
+  const checkboxes = document.querySelectorAll('.container input')
+  for (const checkbox of checkboxes) {
+    checkbox.checked = event.target.checked
   }
 })
 
@@ -52,17 +55,16 @@ const getSelectedUrls = () => {
   return urls
 }
 
-const createArchive = async (urls) => {
+const createArchive = async (imageUrls) => {
   const zip = new JSZip()
 
-  for (const index in urls) {
+  for (const [index, imageUrl] of imageUrls.entries()) {
     try {
-      const url = urls[index]
-      const response = await fetch(url)
-      const blob = await response.blob()
-      zip.file(getFileName(index, blob), blob)
+      const response = await fetch(imageUrl)
+      const imageBlob = await response.blob()
+      zip.file(getFileName(index, imageBlob), imageBlob)
     } catch (error) {
-      console.error(error)
+      console.error('Error fetching image:', error)
     }
   }
 
