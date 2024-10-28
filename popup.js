@@ -1,37 +1,34 @@
-const grabBtn = document.getElementById('grabBtn')
+document.getElementById('grabBtn').addEventListener('click', async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
 
-grabBtn.addEventListener('click', async () => {
-  const [currentTab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  })
-
-  const tabId = currentTab ? currentTab.id : undefined
-
-  if (!tabId) {
-    alert('There are no active tabs')
+  if (!tab) {
+    alert('No active tab')
     return
   }
 
   chrome.scripting.executeScript(
     {
-      target: { tabId, allFrames: true },
-      func: grabImages,
+      target: { tabId: tab.id, allFrames: true },
+      func: grabImageUrls,
     },
-    onResult,
+    handleResult,
   )
 })
 
-const grabImages = () => {
+const grabImageUrls = () => {
   const images = document.querySelectorAll('img')
   return Array.from(images).map((image) => image.src)
 }
 
-const onResult = (frames) => {
-  const imageUrls = frames.flatMap((frame) => frame.result).filter((url) => url)
+const handleResult = (results) => {
+  const imageUrls = results
+    .flatMap((result) => result.result)
+    .filter((url) => url)
+
+  alert(`Found ${imageUrls.length} images`)
 
   if (imageUrls.length === 0) {
-    alert('Could not retrieve images from specified page')
+    alert('No images found on the page')
     return
   }
 
@@ -39,7 +36,7 @@ const onResult = (frames) => {
 }
 
 const openImagesPage = (imageUrls) => {
-  chrome.tabs.create({ url: 'page.html' }, (tab) => {
+  chrome.tabs.create({ url: 'page.html', active: false }, (tab) => {
     chrome.tabs.sendMessage(tab.id, imageUrls, () => {
       chrome.tabs.update(tab.id, { active: true })
     })
