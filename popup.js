@@ -35,15 +35,16 @@ const handleResult = (result) => {
   openImagesPage(imageUrls)
 }
 
-const openImagesPage = (urls) => {
+const openImagesPage = (imageUrls) => {
   chrome.tabs.create({ url: 'page.html', active: false }, (tab) => {
-    chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
-      if (tabId === tab.id && changeInfo.status === 'complete') {
-        chrome.tabs.onUpdated.removeListener(listener)
-        chrome.tabs.sendMessage(tab.id, urls, (response) => {
+    const handleTabUpdate = (tabId, { status }) => {
+      if (tabId === tab.id && status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(handleTabUpdate)
+        chrome.tabs.sendMessage(tab.id, imageUrls, () => {
           chrome.tabs.update(tab.id, { active: true })
         })
       }
-    })
+    }
+    chrome.tabs.onUpdated.addListener(handleTabUpdate)
   })
 }
