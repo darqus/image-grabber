@@ -1,6 +1,8 @@
 document.getElementById('grabBtn').addEventListener('click', async () => {
-  const tabs = await chrome.tabs.query({ active: true })
-  const activeTab = tabs[0]
+  const [activeTab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
+  })
 
   if (!activeTab) {
     alert('There are no active tabs')
